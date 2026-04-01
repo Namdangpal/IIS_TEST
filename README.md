@@ -13,7 +13,7 @@
           <conditions logicalGrouping="MatchAll">
 
             <!-- 1. 크롬 브라우저 -->
-            <add input="{HTTP_USER_AGENT}" pattern="Chrome|Edg" />
+            <add input="{HTTP_USER_AGENT}" pattern="Chrome" />
 
             <!-- 2. 이미 modern 경로면 제외 -->
             <add input="{REQUEST_URI}" pattern="^/modern/" negate="true" />
