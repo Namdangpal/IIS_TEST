@@ -8,7 +8,7 @@
         <!-- 1. Chrome → Modern Rewrite -->
         <!-- ========================= -->
         <rule name="Chrome to Modern (with file check)" stopProcessing="true">
-          <match url="^(.*)\.(asp|js|css|png|jpg|gif|svg)$" ignoreCase="true" />
+          <match url="^(.*)\.(asp|js|html|css|png|jpg|gif|svg)$" ignoreCase="true" />
 
           <conditions logicalGrouping="MatchAll">
 
