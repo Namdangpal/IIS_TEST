@@ -1,0 +1,37 @@
+	<rewrite>
+     <rules>
+                <!-- 우선순위 1: Admin/API 제외 -->
+                <rule name="Exclude Admin API" stopProcessing="true">
+                    <match url="^(admin|api|)/(.*)$" />
+                    <action type="None" />
+                </rule> 
+                
+				 <rule name="Chrome JS to modern" stopProcessing="true">
+					  <match url="^js/(.*)\.js$" />
+
+					  <conditions logicalGrouping="MatchAll">
+						<!-- Chrome 인가 -->
+						<add input="{HTTP_USER_AGENT}" pattern="Chrome" />
+
+						<!-- 이미 modern 경로면 제외 -->
+						<add input="{REQUEST_URI}" pattern="^/modern/" negate="true" />
+
+						<!-- modern 경로에 파일이 실제 존재 -->
+						<add input="{APPL_PHYSICAL_PATH}modern\js\{R:1}.js" matchType="IsFile" />
+					  </conditions>
+
+					  <action type="Rewrite" url="/modern/js/{R:1}.js" />
+					</rule>
+				
+                <!-- 우선순위 4: 일반 페이지 Modern으로 -->
+                <rule name="Pages to Modern2" stopProcessing="true">
+                    <match url="^(.*)\.asp$" />
+                    <conditions logicalGrouping="MatchAll">
+                        <add input="{HTTP_USER_AGENT}" pattern="Chrome"  />
+                        <add input="{REQUEST_URI}" pattern="^/modern/" negate="true" />
+                        <add input="{APPL_PHYSICAL_PATH}modern\{R:1}.asp" matchType="IsFile" />
+                    </conditions>
+                    <action type="Rewrite" url="modern/{R:0}" />
+                </rule>
+            </rules>
+        </rewrite>
