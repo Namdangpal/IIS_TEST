@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>전산지원 요청 목록</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+<style>
+  body { font-size: 15px; }
+  .sidebar-item.active { background-color: #E1F5EE; color: #0F6E56 !important; font-weight: 500; }
+  .sidebar-item:hover { background-color: #f8f9fa; }
+  .tab-active { border-bottom: 2.5px solid #0F6E56; color: #0F6E56 !important; font-weight: 500; }
+  .brand-logo { height: 30px; object-fit: contain; }
+  .form-control, .form-select { font-size: 14px; }
+  .btn { font-size: 14px; }
+
+  /* STATUS BADGES */
+  .badge-pending   { background-color: #fff3cd; color: #856404; border: 1px solid #ffc107; }
+  .badge-progress  { background-color: #cff4fc; color: #055160; border: 1px solid #0dcaf0; }
+  .badge-done      { background-color: #d1e7dd; color: #0a3622; border: 1px solid #198754; }
+  .badge-rejected  { background-color: #f8d7da; color: #58151c; border: 1px solid #dc3545; }
+  .badge-draft     { background-color: #e2e3e5; color: #41464b; border: 1px solid #adb5bd; }
+
+  /* TABLE */
+  .list-table thead th { background-color: #f8f9fa; font-size: 14px; font-weight: 500; color: #555; border-top: 2px solid #dee2e6; white-space: nowrap; }
+  .list-table tbody td { font-size: 14px; vertical-align: middle; }
+  .list-table tbody tr { cursor: pointer; transition: background 0.1s; }
+  .list-table tbody tr:hover { background-color: #f0faf5; }
+  .title-link { color: #0F6E56; text-decoration: none; font-weight: 500; }
+  .title-link:hover { text-decoration: underline; }
+
+  /* SEARCH BAR */
+  .search-bar { background: white; border: 0.5px solid #dee2e6; border-radius: 12px; padding: 16px 20px; margin-bottom: 16px; }
+
+  /* PAGINATION */
+  .page-link { color: #0F6E56; font-size: 14px; }
+  .page-item.active .page-link { background-color: #1D9E75; border-color: #1D9E75; color: white; }
+  .page-link:focus { box-shadow: 0 0 0 0.2rem rgba(29,158,117,.25); }
+
+  /* SIDEBAR RESPONSIVE */
+  @media (max-width: 768px) {
+    .sidebar-col { display: none; position: fixed; top: 0; left: 0; bottom: 0; z-index: 1045; width: 220px; background: white; box-shadow: 2px 0 12px rgba(0,0,0,0.15); overflow-y: auto; padding-top: 60px; }
+    .sidebar-col.show { display: block; }
+    .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 1040; }
+    .sidebar-overlay.show { display: block; }
+    .list-table thead th:nth-child(4),
+    .list-table tbody td:nth-child(4),
+    .list-table thead th:nth-child(6),
+    .list-table tbody td:nth-child(6) { display: none; }
+  }
+  @media (max-width: 480px) {
+    .list-table thead th:nth-child(3),
+    .list-table tbody td:nth-child(3),
+    .list-table thead th:nth-child(7),
+    .list-table tbody td:nth-child(7) { display: none; }
+  }
+  @media (min-width: 769px) {
+    .hamburger-btn { display: none !important; }
+  }
+</style>
+</head>
+<body class="bg-light">
+
+<!-- TOPBAR -->
+<nav class="navbar bg-white border-bottom px-3 px-md-4 sticky-top" style="min-height:54px;">
+  <div class="d-flex align-items-center gap-2">
+    <button class="btn btn-sm btn-outline-secondary border-0 hamburger-btn me-1 p-1" onclick="toggleSidebar()">
+      <svg width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+        <path d="M2.5 4h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1 0-1zm0 4h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1 0-1zm0 4h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1 0-1z"/>
+      </svg>
+    </button>
+    <img src="https://dbinsure.co.kr/common/img/header/logo.jpg" alt="DB손해보험" class="brand-logo">
+    <div class="vr mx-1 d-none d-sm-block"></div>
+    <span class="text-secondary d-none d-sm-block" style="font-size:13px;">IT지원</span>
+  </div>
+  <div class="d-flex align-items-center gap-3">
+    <span class="text-secondary d-none d-md-block" style="font-size:13px;">통합업무지원시스템</span>
+    <div class="d-flex align-items-center gap-2 bg-light border rounded-pill px-3 py-1">
+      <div class="rounded-circle d-flex align-items-center justify-content-center text-white" style="width:24px;height:24px;background:#1D9E75;font-size:12px;font-weight:500;">하</div>
+      <span class="d-none d-sm-inline" style="font-size:13px;">하구삼님</span>
+    </div>
+    <span class="text-secondary d-none d-lg-block" style="font-size:12px; cursor:pointer;">로그아웃</span>
+  </div>
+</nav>
+
+<!-- TAB BAR -->
+<div class="bg-white border-bottom d-flex px-3 px-md-4 overflow-auto" style="white-space:nowrap;">
+  <a class="nav-link tab-active px-4 py-3 text-decoration-none" style="font-size:15px;">전산지원</a>
+  <a class="nav-link text-secondary px-4 py-3 text-decoration-none" style="font-size:15px;">회선 / 네트워크</a>
+</div>
+
+<!-- SIDEBAR OVERLAY -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+<div class="container-fluid px-0">
+  <div class="row g-0" style="min-height: calc(100vh - 108px);">
+
+    <!-- SIDEBAR -->
+    <div class="col-auto border-end bg-white sidebar-col p-0" id="sidebar" style="width:210px;">
+      <div class="pt-3 pb-2">
+        <p class="text-uppercase text-secondary px-3 mb-1" style="font-size:11px; letter-spacing:.07em; font-weight:500;">직원 전산지원 요청</p>
+        <a class="d-flex align-items-center gap-2 px-3 py-2 text-decoration-none sidebar-item active" style="font-size:14px;">
+          <span class="rounded-circle bg-success" style="width:6px;height:6px;display:inline-block;flex-shrink:0;"></span>전산장비지원
+        </a>
+        <a class="d-flex align-items-center gap-2 px-3 py-2 text-decoration-none text-secondary sidebar-item" style="font-size:14px;">
+          <span class="rounded-circle bg-secondary opacity-25" style="width:6px;height:6px;display:inline-block;flex-shrink:0;"></span>전산소모품지원
+        </a>
+        <a class="d-flex align-items-center gap-2 px-3 py-2 text-decoration-none text-secondary sidebar-item" style="font-size:14px;">
+          <span class="rounded-circle bg-secondary opacity-25" style="width:6px;height:6px;display:inline-block;flex-shrink:0;"></span>소프트웨어지원
+        </a>
+        <a class="d-flex align-items-center gap-2 px-3 py-2 text-decoration-none text-secondary sidebar-item" style="font-size:14px;">
+          <span class="rounded-circle bg-secondary opacity-25" style="width:6px;height:6px;display:inline-block;flex-shrink:0;"></span>작업요청
+        </a>
+      </div>
+      <hr class="my-2 mx-3">
+      <div class="pb-2">
+        <p class="text-uppercase text-secondary px-3 mb-1" style="font-size:11px; letter-spacing:.07em; font-weight:500;">관리</p>
+        <a class="d-flex align-items-center gap-2 px-3 py-2 text-decoration-none text-secondary sidebar-item" style="font-size:14px;"><span class="rounded-circle bg-secondary opacity-25" style="width:6px;height:6px;display:inline-block;flex-shrink:0;"></span>PA/GA 전산요청</a>
+        <a class="d-flex align-items-center gap-2 px-3 py-2 text-decoration-none text-secondary sidebar-item" style="font-size:14px;"><span class="rounded-circle bg-secondary opacity-25" style="width:6px;height:6px;display:inline-block;flex-shrink:0;"></span>전산지원 진행현황</a>
+        <a class="d-flex align-items-center gap-2 px-3 py-2 text-decoration-none text-secondary sidebar-item" style="font-size:14px;"><span class="rounded-circle bg-secondary opacity-25" style="width:6px;height:6px;display:inline-block;flex-shrink:0;"></span>자산현황관리</a>
+        <a class="d-flex align-items-center gap-2 px-3 py-2 text-decoration-none text-secondary sidebar-item" style="font-size:14px;"><span class="rounded-circle bg-secondary opacity-25" style="width:6px;height:6px;display:inline-block;flex-shrink:0;"></span>지원관리</a>
+        <a class="d-flex align-items-center gap-2 px-3 py-2 text-decoration-none text-secondary sidebar-item" style="font-size:14px;"><span class="rounded-circle bg-secondary opacity-25" style="width:6px;height:6px;display:inline-block;flex-shrink:0;"></span>특인관리</a>
+        <a class="d-flex align-items-center gap-2 px-3 py-2 text-decoration-none text-secondary sidebar-item" style="font-size:14px;"><span class="rounded-circle bg-secondary opacity-25" style="width:6px;height:6px;display:inline-block;flex-shrink:0;"></span>구매/비용관리</a>
+        <a class="d-flex align-items-center gap-2 px-3 py-2 text-decoration-none text-secondary sidebar-item" style="font-size:14px;"><span class="rounded-circle bg-secondary opacity-25" style="width:6px;height:6px;display:inline-block;flex-shrink:0;"></span>작업관리</a>
+        <a class="d-flex align-items-center gap-2 px-3 py-2 text-decoration-none text-secondary sidebar-item" style="font-size:14px;"><span class="rounded-circle bg-secondary opacity-25" style="width:6px;height:6px;display:inline-block;flex-shrink:0;"></span>결재</a>
+        <a class="d-flex align-items-center gap-2 px-3 py-2 text-decoration-none text-secondary sidebar-item" style="font-size:14px;"><span class="rounded-circle bg-secondary opacity-25" style="width:6px;height:6px;display:inline-block;flex-shrink:0;"></span>현황/평가관리</a>
+        <a class="d-flex align-items-center gap-2 px-3 py-2 text-decoration-none text-secondary sidebar-item" style="font-size:14px;"><span class="rounded-circle bg-secondary opacity-25" style="width:6px;height:6px;display:inline-block;flex-shrink:0;"></span>SAP 현황관리</a>
+        <a class="d-flex align-items-center gap-2 px-3 py-2 text-decoration-none text-secondary sidebar-item" style="font-size:14px;"><span class="rounded-circle bg-secondary opacity-25" style="width:6px;height:6px;display:inline-block;flex-shrink:0;"></span>유지보수계약관리</a>
+      </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="col p-3 p-md-4" style="min-width:0;">
+      <div class="mx-auto" style="max-width:1200px;">
+
+        <!-- BREADCRUMB -->
+        <nav class="mb-3">
+          <ol class="breadcrumb mb-0" style="font-size:13px;">
+            <li class="breadcrumb-item text-secondary">직원전산지원요청</li>
+            <li class="breadcrumb-item active fw-500">전산장비지원</li>
+          </ol>
+        </nav>
+
+        <!-- PAGE HEADER -->
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+          <h5 class="fw-500 mb-0" style="font-size:20px;">전산장비지원 신청목록</h5>
+          <div class="dropdown">
+            <button class="btn px-4 py-2 text-white fw-500 dropdown-toggle" style="background:#1D9E75; font-size:14px;" data-bs-toggle="dropdown" aria-expanded="false">
+              + 신규 요청
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow-sm border" style="min-width:200px;">
+              <li><h6 class="dropdown-header text-uppercase" style="font-size:11px; letter-spacing:.06em;">지원 유형 선택</h6></li>
+              <li>
+                <a class="dropdown-item py-2 d-flex align-items-center gap-2" href="#" data-bs-toggle="modal" data-bs-target="#modalEquip">
+                  <span class="rounded-circle text-white d-flex align-items-center justify-content-center" style="width:22px;height:22px;background:#1D9E75;font-size:11px;flex-shrink:0;">장</span>
+                  전산장비지원
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item py-2 d-flex align-items-center gap-2" href="#" data-bs-toggle="modal" data-bs-target="#modalSupply">
+                  <span class="rounded-circle text-white d-flex align-items-center justify-content-center" style="width:22px;height:22px;background:#0d6efd;font-size:11px;flex-shrink:0;">소</span>
+                  전산소모품지원
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item py-2 d-flex align-items-center gap-2" href="#" data-bs-toggle="modal" data-bs-target="#modalSoftware">
+                  <span class="rounded-circle text-white d-flex align-items-center justify-content-center" style="width:22px;height:22px;background:#6f42c1;font-size:11px;flex-shrink:0;">소</span>
+                  소프트웨어지원
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- SEARCH BAR -->
+        <div class="search-bar">
+          <div class="row g-2 align-items-end">
+            <div class="col-12 col-md-2">
+              <label class="form-label text-secondary mb-1" style="font-size:13px;">기간</label>
+              <div class="d-flex align-items-center gap-1">
+                <input type="date" class="form-control form-control-sm" value="2026-01-01">
+                <span class="text-secondary">~</span>
+                <input type="date" class="form-control form-control-sm" value="2026-04-12">
+              </div>
+            </div>
+            <div class="col-6 col-md-2">
+              <label class="form-label text-secondary mb-1" style="font-size:13px;">처리상태</label>
+              <select class="form-select form-select-sm">
+                <option value="">전체</option>
+                <option>대기중</option>
+                <option>처리중</option>
+                <option>완료</option>
+                <option>반려</option>
+                <option>임시저장</option>
+              </select>
+            </div>
+            <div class="col-6 col-md-2">
+              <label class="form-label text-secondary mb-1" style="font-size:13px;">지원유형</label>
+              <select class="form-select form-select-sm">
+                <option value="">전체</option>
+                <option>장비</option>
+                <option>소모품</option>
+                <option>소프트웨어</option>
+                <option>작업</option>
+              </select>
+            </div>
+            <div class="col-12 col-md-4">
+              <label class="form-label text-secondary mb-1" style="font-size:13px;">검색어</label>
+              <div class="input-group input-group-sm">
+                <select class="form-select" style="max-width:110px; font-size:14px;">
+                  <option>제목</option>
+                  <option>요청자</option>
+                  <option>접수번호</option>
+                </select>
+                <input type="text" class="form-control" placeholder="검색어를 입력하세요">
+              </div>
+            </div>
+            <div class="col-12 col-md-2 d-flex gap-2">
+              <button class="btn btn-sm px-4 w-100 text-white" style="background:#1D9E75;">조회</button>
+              <button class="btn btn-sm btn-outline-secondary px-3 w-100">초기화</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- LIST TABLE -->
+        <div class="card border rounded-3 shadow-none mb-3">
+          <div class="d-flex justify-content-between align-items-center px-3 pt-3 pb-2">
+            <span class="text-secondary" style="font-size:13px;">총 <strong class="text-dark">24</strong>건</span>
+            <div class="d-flex gap-2 align-items-center">
+              <label class="text-secondary" style="font-size:13px;">표시</label>
+              <select class="form-select form-select-sm" style="width:80px; font-size:13px;">
+                <option>10</option>
+                <option>20</option>
+                <option>50</option>
+              </select>
+              <span class="text-secondary" style="font-size:13px;">건</span>
+            </div>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-bordered list-table mb-0">
+              <thead>
+                <tr>
+                  <th class="text-center" style="width:50px;">번호</th>
+                  <th class="text-center" style="width:120px;">접수번호</th>
+                  <th class="text-center" style="width:100px;">지원유형</th>
+                  <th class="text-center" style="width:80px;">요청구분</th>
+                  <th>제목</th>
+                  <th class="text-center" style="width:100px;">요청자</th>
+                  <th class="text-center" style="width:110px;">요청일</th>
+                  <th class="text-center" style="width:110px;">설치희망일</th>
+                  <th class="text-center" style="width:90px;">상태</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="text-center text-secondary">24</td>
+                  <td class="text-center">IT-2026-0024</td>
+                  <td class="text-center"><span class="badge rounded-pill px-3 py-1 fw-normal" style="background:#E1F5EE;color:#0F6E56;border:1px solid #5DCAA5;font-size:13px;">장비</span></td>
+                  <td class="text-center">신규</td>
+                  <td><a class="title-link">신입사원 노트북 지급 요청</a></td>
+                  <td class="text-center">하구삼</td>
+                  <td class="text-center">2026-04-10</td>
+                  <td class="text-center">2026-04-17</td>
+                  <td class="text-center"><span class="badge badge-pending rounded-pill px-3 py-1">대기중</span></td>
+                </tr>
+                <tr>
+                  <td class="text-center text-secondary">23</td>
+                  <td class="text-center">IT-2026-0023</td>
+                  <td class="text-center"><span class="badge rounded-pill px-3 py-1 fw-normal" style="background:#E1F5EE;color:#0F6E56;border:1px solid #5DCAA5;font-size:13px;">장비</span></td>
+                  <td class="text-center">교체</td>
+                  <td><a class="title-link">경영정보Unit 모니터 교체 요청</a></td>
+                  <td class="text-center">김민준</td>
+                  <td class="text-center">2026-04-08</td>
+                  <td class="text-center">2026-04-15</td>
+                  <td class="text-center"><span class="badge badge-progress rounded-pill px-3 py-1">처리중</span></td>
+                </tr>
+                <tr>
+                  <td class="text-center text-secondary">22</td>
+                  <td class="text-center">IT-2026-0022</td>
+                  <td class="text-center"><span class="badge rounded-pill px-3 py-1 fw-normal" style="background:#e8f0fe;color:#0d6efd;border:1px solid #0d6efd;font-size:13px;">소모품</span></td>
+                  <td class="text-center">보충</td>
+                  <td><a class="title-link">손보운영파트 토너 보충 요청</a></td>
+                  <td class="text-center">이서연</td>
+                  <td class="text-center">2026-04-05</td>
+                  <td class="text-center">2026-04-14</td>
+                  <td class="text-center"><span class="badge badge-progress rounded-pill px-3 py-1">처리중</span></td>
+                </tr>
+                <tr>
+                  <td class="text-center text-secondary">21</td>
+                  <td class="text-center">IT-2026-0021</td>
+                  <td class="text-center"><span class="badge rounded-pill px-3 py-1 fw-normal" style="background:#f3effe;color:#6f42c1;border:1px solid #6f42c1;font-size:13px;">소프트웨어</span></td>
+                  <td class="text-center">신규 설치</td>
+                  <td><a class="title-link">IT지원본부 업무용 SW 신규 설치 요청</a></td>
+                  <td class="text-center">박지훈</td>
+                  <td class="text-center">2026-04-03</td>
+                  <td class="text-center">2026-04-11</td>
+                  <td class="text-center"><span class="badge badge-done rounded-pill px-3 py-1">완료</span></td>
+                </tr>
+                <tr>
+                  <td class="text-center text-secondary">20</td>
+                  <td class="text-center">IT-2026-0020</td>
+                  <td class="text-center"><span class="badge rounded-pill px-3 py-1 fw-normal" style="background:#fff3e0;color:#e65100;border:1px solid #fb8c00;font-size:13px;">작업</span></td>
+                  <td class="text-center">일반작업</td>
+                  <td><a class="title-link">감사팀 네트워크 설정 작업 요청</a></td>
+                  <td class="text-center">최수빈</td>
+                  <td class="text-center">2026-03-31</td>
+                  <td class="text-center">2026-04-07</td>
+                  <td class="text-center"><span class="badge badge-done rounded-pill px-3 py-1">완료</span></td>
+                </tr>
+                <tr>
+                  <td class="text-center text-secondary">19</td>
+                  <td class="text-center">IT-2026-0019</td>
+                  <td class="text-center"><span class="badge rounded-pill px-3 py-1 fw-normal" style="background:#E1F5EE;color:#0F6E56;border:1px solid #5DCAA5;font-size:13px;">장비</span></td>
+                  <td class="text-center">교체</td>
+                  <td><a class="title-link">재무팀 노트북 노후화 교체 요청</a></td>
+                  <td class="text-center">정태윤</td>
+                  <td class="text-center">2026-03-28</td>
+                  <td class="text-center">2026-04-04</td>
+                  <td class="text-center"><span class="badge badge-rejected rounded-pill px-3 py-1">반려</span></td>
+                </tr>
+                <tr>
+                  <td class="text-center text-secondary">18</td>
+                  <td class="text-center">IT-2026-0018</td>
+                  <td class="text-center"><span class="badge rounded-pill px-3 py-1 fw-normal" style="background:#e8f0fe;color:#0d6efd;border:1px solid #0d6efd;font-size:13px;">소모품</span></td>
+                  <td class="text-center">신규</td>
+                  <td><a class="title-link">계약팀 토너 카트리지 신규 요청</a></td>
+                  <td class="text-center">오다은</td>
+                  <td class="text-center">2026-03-25</td>
+                  <td class="text-center">2026-04-01</td>
+                  <td class="text-center"><span class="badge badge-done rounded-pill px-3 py-1">완료</span></td>
+                </tr>
+                <tr>
+                  <td class="text-center text-secondary">17</td>
+                  <td class="text-center">—</td>
+                  <td class="text-center"><span class="badge rounded-pill px-3 py-1 fw-normal" style="background:#E1F5EE;color:#0F6E56;border:1px solid #5DCAA5;font-size:13px;">장비</span></td>
+                  <td class="text-center">신규</td>
+                  <td><a class="title-link">신규 배치 모니터 요청 (임시저장)</a></td>
+                  <td class="text-center">하구삼</td>
+                  <td class="text-center">2026-03-22</td>
+                  <td class="text-center">—</td>
+                  <td class="text-center"><span class="badge badge-draft rounded-pill px-3 py-1">임시저장</span></td>
+                </tr>
+                <tr>
+                  <td class="text-center text-secondary">16</td>
+                  <td class="text-center">IT-2026-0016</td>
+                  <td class="text-center"><span class="badge rounded-pill px-3 py-1 fw-normal" style="background:#f3effe;color:#6f42c1;border:1px solid #6f42c1;font-size:13px;">소프트웨어</span></td>
+                  <td class="text-center">업그레이드</td>
+                  <td><a class="title-link">영업지원팀 보안 SW 업그레이드 요청</a></td>
+                  <td class="text-center">강민서</td>
+                  <td class="text-center">2026-03-18</td>
+                  <td class="text-center">2026-03-25</td>
+                  <td class="text-center"><span class="badge badge-done rounded-pill px-3 py-1">완료</span></td>
+                </tr>
+                <tr>
+                  <td class="text-center text-secondary">15</td>
+                  <td class="text-center">IT-2026-0015</td>
+                  <td class="text-center"><span class="badge rounded-pill px-3 py-1 fw-normal" style="background:#fff3e0;color:#e65100;border:1px solid #fb8c00;font-size:13px;">작업</span></td>
+                  <td class="text-center">일반작업</td>
+                  <td><a class="title-link">마케팅팀 PC 초기화 작업 요청</a></td>
+                  <td class="text-center">윤지아</td>
+                  <td class="text-center">2026-03-15</td>
+                  <td class="text-center">2026-03-21</td>
+                  <td class="text-center"><span class="badge badge-done rounded-pill px-3 py-1">완료</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- PAGINATION -->
+          <div class="d-flex justify-content-center py-4">
+            <nav>
+              <ul class="pagination mb-0">
+                <li class="page-item disabled"><a class="page-link px-3">«</a></li>
+                <li class="page-item disabled"><a class="page-link px-3">‹</a></li>
+                <li class="page-item active"><a class="page-link px-3">1</a></li>
+                <li class="page-item"><a class="page-link px-3" href="#">2</a></li>
+                <li class="page-item"><a class="page-link px-3" href="#">3</a></li>
+                <li class="page-item"><a class="page-link px-3" href="#">›</a></li>
+                <li class="page-item"><a class="page-link px-3" href="#">»</a></li>
+              </ul>
+            </nav>
+          </div>
+        </div>
+
+      </div><!-- /centered wrapper -->
+    </div><!-- /MAIN -->
+  </div><!-- /row -->
+</div><!-- /container -->
+
+<!-- ① 전산장비지원 모달 -->
+<div class="modal fade" id="modalEquip" tabindex="-1" aria-labelledby="modalEquipLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header border-bottom py-3 px-4">
+        <div class="d-flex align-items-center gap-2">
+          <span class="rounded-circle text-white d-flex align-items-center justify-content-center" style="width:28px;height:28px;background:#1D9E75;font-size:13px;font-weight:500;flex-shrink:0;">장</span>
+          <h5 class="modal-title fw-500 mb-0" id="modalEquipLabel" style="font-size:18px;">전산장비지원 신청</h5>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <!-- MODAL BODY -->
+      <div class="modal-body p-4">
+
+        <!-- 접수 정보 -->
+        <div class="card border rounded-3 mb-3 shadow-none">
+          <div class="card-body py-3 px-4">
+            <div class="row g-3">
+              <div class="col-6 col-md-auto">
+                <div class="text-uppercase text-secondary mb-1" style="font-size:10px; letter-spacing:.06em;">접수번호</div>
+                <div class="text-secondary" style="font-size:14px;">— 자동 발급</div>
+              </div>
+              <div class="col-6 col-md-auto">
+                <div class="text-uppercase text-secondary mb-1" style="font-size:10px; letter-spacing:.06em;">요청자</div>
+                <div class="fw-500" style="font-size:14px;">하구삼</div>
+              </div>
+              <div class="col-6 col-md-auto">
+                <div class="text-uppercase text-secondary mb-1" style="font-size:10px; letter-spacing:.06em;">결재자</div>
+                <div class="text-secondary" style="font-size:14px;">미지정</div>
+              </div>
+              <div class="col-12 col-md">
+                <div class="text-uppercase text-secondary mb-1" style="font-size:10px; letter-spacing:.06em;">소속</div>
+                <div class="text-secondary" style="font-size:14px;">경영기획실 / IT지원본부 / 손보운영파트 / 경영정보Unit</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 요청 내용 -->
+        <div class="card border rounded-3 mb-3 shadow-none">
+          <div class="card-body p-4">
+            <div class="d-flex align-items-center gap-2 mb-3">
+              <span class="section-num">1</span>
+              <span class="fw-500 text-secondary" style="font-size:15px;">요청 내용</span>
+              <span class="ms-auto badge bg-light border text-secondary fw-normal" style="font-size:12px; cursor:pointer;">지원기준 안내</span>
+            </div>
+
+            <!-- 제목 -->
+            <div class="row g-0 border-bottom py-2 align-items-center">
+              <div class="col-12 col-sm-2 field-label-col py-1 pe-3">제목</div>
+              <div class="col-12 col-sm-10 ps-sm-3 pt-1 pt-sm-0">
+                <input type="text" class="form-control" placeholder="요청 제목을 입력하세요">
+              </div>
+            </div>
+
+            <!-- 품목 -->
+            <div class="row g-0 border-bottom py-2 align-items-start">
+              <div class="col-12 col-sm-2 field-label-col py-1 pe-3">품목</div>
+              <div class="col-12 col-sm-10 ps-sm-3 pt-1 pt-sm-0">
+                <div class="d-flex gap-2 flex-wrap align-items-center">
+                  <select class="form-select" style="width:auto; min-width:140px;">
+                    <option>:::품목 선택:::</option>
+                    <option>본체</option><option>모니터</option><option>노트북</option>
+                    <option>칼라 프린터</option><option>흑백 프린터</option><option>스캐너</option>
+                  </select>
+                  <input type="number" class="form-control" min="1" value="1" style="width:70px;">
+                  <span class="text-secondary">개</span>
+                  <button class="btn btn-sm px-3" style="background:#E1F5EE; color:#0F6E56; border:1px solid #5DCAA5;">추가</button>
+                  <button class="btn btn-sm btn-outline-danger px-3">삭제</button>
+                </div>
+                <div class="text-secondary mt-1" style="font-size:13px;">한 장소에 여러 대가 필요할 때만 기재</div>
+              </div>
+            </div>
+
+            <!-- 요청구분 -->
+            <div class="row g-0 border-bottom py-2 align-items-center">
+              <div class="col-12 col-sm-2 field-label-col py-1 pe-3">요청구분</div>
+              <div class="col-12 col-sm-10 ps-sm-3 pt-1 pt-sm-0 d-flex gap-3 flex-wrap">
+                <div class="form-check mb-0"><input class="form-check-input" type="radio" name="mtype" id="m1"><label class="form-check-label" for="m1">신규</label></div>
+                <div class="form-check mb-0"><input class="form-check-input" type="radio" name="mtype" id="m2"><label class="form-check-label" for="m2">교체</label></div>
+                <div class="form-check mb-0"><input class="form-check-input" type="radio" name="mtype" id="m3"><label class="form-check-label" for="m3">교체+신규</label></div>
+                <div class="form-check mb-0"><input class="form-check-input" type="radio" name="mtype" id="m4"><label class="form-check-label" for="m4">대 여</label></div>
+              </div>
+            </div>
+
+            <!-- 사용용도 -->
+            <div class="row g-0 border-bottom py-2 align-items-center">
+              <div class="col-12 col-sm-2 field-label-col py-1 pe-3">사용용도</div>
+              <div class="col-12 col-sm-10 ps-sm-3 pt-1 pt-sm-0">
+                <select class="form-select" style="width:auto; min-width:150px;">
+                  <option>::용도 선택::</option>
+                  <option>업무용</option><option>교육용</option><option>기타</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- 주사용자 -->
+            <div class="row g-0 border-bottom py-2 align-items-center">
+              <div class="col-12 col-sm-2 field-label-col py-1 pe-3">주사용자</div>
+              <div class="col-12 col-sm-10 ps-sm-3 pt-1 pt-sm-0 d-flex gap-2 flex-wrap align-items-center">
+                <input type="text" class="form-control" placeholder="이름 검색" style="max-width:200px;">
+                <button class="btn btn-outline-secondary btn-sm px-3">검색</button>
+                <div class="form-check mb-0 ms-2">
+                  <input class="form-check-input" type="checkbox" id="mNewUser">
+                  <label class="form-check-label" for="mNewUser">신규입사자 / 공용</label>
+                </div>
+              </div>
+            </div>
+
+            <!-- 장비현황 -->
+            <div class="row g-0 border-bottom py-2 align-items-center">
+              <div class="col-12 col-sm-2 field-label-col py-1 pe-3">장비현황</div>
+              <div class="col-12 col-sm-10 ps-sm-3 pt-1 pt-sm-0 d-flex gap-2 flex-wrap">
+                <span class="badge rounded-pill bg-light border text-secondary fw-normal px-3 py-2" style="font-size:13px;">본체 <strong class="text-dark ms-1">0</strong></span>
+                <span class="badge rounded-pill bg-light border text-secondary fw-normal px-3 py-2" style="font-size:13px;">모니터 <strong class="text-dark ms-1">0</strong></span>
+                <span class="badge rounded-pill bg-light border text-secondary fw-normal px-3 py-2" style="font-size:13px;">노트북 <strong class="text-dark ms-1">0</strong></span>
+                <span class="badge rounded-pill bg-light border text-secondary fw-normal px-3 py-2" style="font-size:13px;">칼라 프린터 <strong class="text-dark ms-1">0</strong></span>
+                <span class="badge rounded-pill bg-light border text-secondary fw-normal px-3 py-2" style="font-size:13px;">흑백 프린터 <strong class="text-dark ms-1">0</strong></span>
+                <span class="badge rounded-pill bg-light border text-secondary fw-normal px-3 py-2" style="font-size:13px;">스캐너 <strong class="text-dark ms-1">0</strong></span>
+              </div>
+            </div>
+
+            <!-- 설치장소 -->
+            <div class="row g-0 border-bottom py-2 align-items-center">
+              <div class="col-12 col-sm-2 field-label-col py-1 pe-3">설치장소</div>
+              <div class="col-12 col-sm-10 ps-sm-3 pt-1 pt-sm-0 d-flex gap-2 flex-wrap align-items-center">
+                <input type="text" class="form-control" placeholder="장소명" style="max-width:180px;">
+                <select class="form-select" style="width:90px;"><option>선택</option></select>
+                <span class="text-secondary">-</span>
+                <input type="text" class="form-control" style="width:70px;">
+                <button class="btn btn-outline-secondary btn-sm px-3">조회</button>
+              </div>
+            </div>
+
+            <!-- 설치희망일 -->
+            <div class="row g-0 border-bottom py-2 align-items-start">
+              <div class="col-12 col-sm-2 field-label-col py-1 pe-3">설치희망일</div>
+              <div class="col-12 col-sm-10 ps-sm-3 pt-1 pt-sm-0">
+                <div class="d-flex gap-2 flex-wrap align-items-center mb-1">
+                  <input type="date" class="form-control" value="2026-04-14" style="width:170px;">
+                  <select class="form-select" style="width:80px;">
+                    <option>9</option><option>10</option><option>11</option><option>12</option>
+                    <option>13</option><option>14</option><option>15</option><option>16</option>
+                    <option selected>17</option><option>18</option>
+                  </select>
+                  <span class="text-secondary">시</span>
+                </div>
+                <div class="d-flex align-items-center gap-1" style="color:#D85A30; font-size:13px;">
+                  <svg width="8" height="8" fill="#D85A30" viewBox="0 0 16 16"><circle cx="8" cy="8" r="8"/></svg>
+                  설치 희망일은 요청일 기준 5일 이후부터 가능합니다.
+                </div>
+              </div>
+            </div>
+
+            <!-- 첨부파일 -->
+            <div class="row g-0 py-2 align-items-center">
+              <div class="col-12 col-sm-2 field-label-col py-1 pe-3">첨부파일</div>
+              <div class="col-12 col-sm-10 ps-sm-3 pt-1 pt-sm-0 d-flex gap-2 flex-wrap">
+                <button class="btn btn-sm px-3" style="background:#E1F5EE; color:#0F6E56; border:1px solid #5DCAA5;">+ 파일 추가</button>
+                <button class="btn btn-sm btn-outline-danger px-3">삭제</button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- 요청 사유 -->
+        <div class="card border rounded-3 shadow-none">
+          <div class="card-body p-4">
+            <div class="d-flex align-items-center gap-2 mb-3">
+              <span class="section-num">2</span>
+              <span class="fw-500 text-secondary" style="font-size:15px;">요청 사유</span>
+            </div>
+            <textarea class="form-control" rows="4" placeholder="요청 사유를 구체적으로 작성하여 주시기 바랍니다."></textarea>
+          </div>
+        </div>
+
+      </div><!-- /modal-body -->
+
+      <!-- MODAL FOOTER -->
+      <div class="modal-footer border-top px-4 py-3 d-flex justify-content-center gap-3">
+        <button class="btn px-5 py-2 fw-500 text-white" style="background:#1D9E75; font-size:15px;">결재 요청</button>
+        <button class="btn btn-outline-secondary px-4 py-2" style="font-size:15px;">임시 보관</button>
+        <button class="btn btn-outline-secondary px-4 py-2" data-bs-dismiss="modal" style="font-size:15px;">닫 기</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ② 전산소모품지원 모달 -->
+<div class="modal fade" id="modalSupply" tabindex="-1" aria-labelledby="modalSupplyLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header border-bottom py-3 px-4">
+        <div class="d-flex align-items-center gap-2">
+          <span class="rounded-circle text-white d-flex align-items-center justify-content-center" style="width:28px;height:28px;background:#0d6efd;font-size:13px;font-weight:500;flex-shrink:0;">소</span>
+          <h5 class="modal-title fw-500 mb-0" id="modalSupplyLabel" style="font-size:18px;">전산소모품지원 신청</h5>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4">
+
+        <!-- 접수 정보 -->
+        <div class="card border rounded-3 mb-3 shadow-none">
+          <div class="card-body py-3 px-4">
+            <div class="row g-3">
+              <div class="col-6 col-md-auto">
+                <div class="text-uppercase text-secondary mb-1" style="font-size:10px; letter-spacing:.06em;">접수번호</div>
+                <div class="text-secondary" style="font-size:14px;">— 자동 발급</div>
+              </div>
+              <div class="col-6 col-md-auto">
+                <div class="text-uppercase text-secondary mb-1" style="font-size:10px; letter-spacing:.06em;">요청자</div>
+                <div class="fw-500" style="font-size:14px;">하구삼</div>
+              </div>
+              <div class="col-6 col-md-auto">
+                <div class="text-uppercase text-secondary mb-1" style="font-size:10px; letter-spacing:.06em;">결재자</div>
+                <div class="text-secondary" style="font-size:14px;">미지정</div>
+              </div>
+              <div class="col-12 col-md">
+                <div class="text-uppercase text-secondary mb-1" style="font-size:10px; letter-spacing:.06em;">소속</div>
+                <div class="text-secondary" style="font-size:14px;">경영기획실 / IT지원본부 / 손보운영파트 / 경영정보Unit</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 요청 내용 -->
+        <div class="card border rounded-3 mb-3 shadow-none">
+          <div class="card-body p-4">
+            <div class="d-flex align-items-center gap-2 mb-3">
+              <span class="section-num" style="background:#0d6efd;">1</span>
+              <span class="fw-500 text-secondary" style="font-size:15px;">요청 내용</span>
+            </div>
+            <!-- 제목 -->
+            <div class="row g-0 border-bottom py-2 align-items-center">
+              <div class="col-12 col-sm-2 field-label-col py-1 pe-3">제목</div>
+              <div class="col-12 col-sm-10 ps-sm-3 pt-1 pt-sm-0">
+                <input type="text" class="form-control" placeholder="요청 제목을 입력하세요">
+              </div>
+            </div>
+            <!-- 소모품 품목 -->
+            <div class="row g-0 border-bottom py-2 align-items-start">
+              <div class="col-12 col-sm-2 field-label-col py-1 pe-3">품목</div>
+              <div class="col-12 col-sm-10 ps-sm-3 pt-1 pt-sm-0">
+                <div class="d-flex gap-2 flex-wrap align-items-center">
+                  <select class="form-select" style="width:auto; min-width:160px;">
+                    <option>:::품목 선택:::</option>
+                    <option>토너 (칼라)</option>
+                    <option>토너 (흑백)</option>
+                    <option>잉크 카트리지</option>
+                    <option>마우스</option>
+                    <option>키보드</option>
+                    <option>USB 허브</option>
+                    <option>랜 케이블</option>
+                    <option>기타</option>
+                  </select>
+                  <input type="number" class="form-control" min="1" value="1" style="width:70px;">
+                  <span class="text-secondary">개</span>
+                  <button class="btn btn-sm px-3" style="background:#e8f0fe; color:#0d6efd; border:1px solid #0d6efd;">추가</button>
+                  <button class="btn btn-sm btn-outline-danger px-3">삭제</button>
+                </div>
+              </div>
+            </div>
+            <!-- 요청구분 -->
+            <div class="row g-0 border-bottom py-2 align-items-center">
+              <div class="col-12 col-sm-2 field-label-col py-1 pe-3">요청구분</div>
+              <div class="col-12 col-sm-10 ps-sm-3 pt-1 pt-sm-0 d-flex gap-3 flex-wrap">
+                <div class="form-check mb-0"><input class="form-check-input" type="radio" name="stype" id="s1"><label class="form-check-label" for="s1">신규</label></div>
+                <div class="form-check mb-0"><input class="form-check-input" type="radio" name="stype" id="s2"><label class="form-check-label" for="s2">보충</label></div>
+              </div>
+            </div>
+            <!-- 주사용자 -->
+            <div class="row g-0 border-bottom py-2 align-items-center">
+              <div class="col-12 col-sm-2 field-label-col py-1 pe-3">주사용자</div>
+              <div class="col-12 col-sm-10 ps-sm-3 pt-1 pt-sm-0 d-flex gap-2 flex-wrap align-items-center">
+                <input type="text" class="form-control" placeholder="이름 검색" style="max-width:200px;">
+                <button class="btn btn-outline-secondary btn-sm px-3">검색</button>
+              </div>
+            </div>
+            <!-- 배송지 -->
+            <div class="row g-0 border-bottom py-2 align-items-center">
+              <div class="col-12 col-sm-2 field-label-col py-1 pe-3">배송지</div>
+              <div class="col-12 col-sm-10 ps-sm-3 pt-1 pt-sm-0 d-flex gap-2 flex-wrap align-items-center">
+                <input type="text" class="form-control" placeholder="배송 장소 입력" style="max-width:280px;">
+                <button class="btn btn-outline-secondary btn-sm px-3">조회</button>
+              </div>
+            </div>
+            <!-- 첨부파일 -->
+            <div class="row g-0 py-2 align-items-center">
+              <div class="col-12 col-sm-2 field-label-col py-1 pe-3">첨부파일</div>
+              <div class="col-12 col-sm-10 ps-sm-3 pt-1 pt-sm-0 d-flex gap-2 flex-wrap">
+                <button class="btn btn-sm px-3" style="background:#e8f0fe; color:#0d6efd; border:1px solid #0d6efd;">+ 파일 추가</button>
+                <button class="btn btn-sm btn-outline-danger px-3">삭제</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 요청 사유 -->
+        <div class="card border rounded-3 shadow-none">
+          <div class="card-body p-4">
+            <div class="d-flex align-items-center gap-2 mb-3">
+              <span class="section-num" style="background:#0d6efd;">2</span>
+              <span class="fw-500 text-secondary" style="font-size:15px;">요청 사유</span>
+            </div>
+            <textarea class="form-control" rows="4" placeholder="요청 사유를 구체적으로 작성하여 주시기 바랍니다."></textarea>
+          </div>
+        </div>
+
+      </div>
+      <div class="modal-footer border-top px-4 py-3 d-flex justify-content-center gap-3">
+        <button class="btn px-5 py-2 fw-500 text-white" style="background:#0d6efd; font-size:15px;">결재 요청</button>
+        <button class="btn btn-outline-secondary px-4 py-2" style="font-size:15px;">임시 보관</button>
+        <button class="btn btn-outline-secondary px-4 py-2" data-bs-dismiss="modal" style="font-size:15px;">닫 기</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ③ 소프트웨어지원 모달 -->
+<div class="modal fade" id="modalSoftware" tabindex="-1" aria-labelledby="modalSoftwareLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header border-bottom py-3 px-4">
+        <div class="d-flex align-items-center gap-2">
+          <span class="rounded-circle text-white d-flex align-items-center justify-content-center" style="width:28px;height:28px;background:#6f42c1;font-size:13px;font-weight:500;flex-shrink:0;">소</span>
+          <h5 class="modal-title fw-500 mb-0" id="modalSoftwareLabel" style="font-size:18px;">소프트웨어지원 신청</h5>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4">
+
+        <!-- 접수 정보 -->
+        <div class="card border rounded-3 mb-3 shadow-none">
+          <div class="card-body py-3 px-4">
+            <div class="row g-3">
+              <div class="col-6 col-md-auto">
+                <div class="text-uppercase text-secondary mb-1" style="font-size:10px; letter-spacing:.06em;">접수번호</div>
+                <div class="text-secondary" style="font-size:14px;">— 자동 발급</div>
+              </div>
+              <div class="col-6 col-md-auto">
+                <div class="text-uppercase text-secondary mb-1" style="font-size:10px; letter-spacing:.06em;">요청자</div>
+                <div class="fw-500" style="font-size:14px;">하구삼</div>
+              </div>
+              <div class="col-6 col-md-auto">
+                <div class="text-uppercase text-secondary mb-1" style="font-size:10px; letter-spacing:.06em;">결재자</div>
+                <div class="text-secondary" style="font-size:14px;">미지정</div>
+              </div>
+              <div class="col-12 col-md">
+                <div class="text-uppercase text-secondary mb-1" style="font-size:10px; letter-spacing:.06em;">소속</div>
+                <div class="text-secondary" style="font-size:14px;">경영기획실 / IT지원본부 / 손보운영파트 / 경영정보Unit</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 요청 내용 -->
+        <div class="card border rounded-3 mb-3 shadow-none">
+          <div class="card-body p-4">
+            <div class="d-flex align-items-center gap-2 mb-3">
+              <span class="section-num" style="background:#6f42c1;">1</span>
+              <span class="fw-500 text-secondary" style="font-size:15px;">요청 내용</span>
+            </div>
+            <!-- 제목 -->
+            <div class="row g-0 border-bottom py-2 align-items-center">
+              <div class="col-12 col-sm-2 field-label-col py-1 pe-3">제목</div>
+              <div class="col-12 col-sm-10 ps-sm-3 pt-1 pt-sm-0">
+                <input type="text" class="form-control" placeholder="요청 제목을 입력하세요">
+              </div>
+            </div>
+            <!-- 소프트웨어명 -->
+            <div class="row g-0 border-bottom py-2 align-items-center">
+              <div class="col-12 col-sm-2 field-label-col py-1 pe-3">소프트웨어명</div>
+              <div class="col-12 col-sm-10 ps-sm-3 pt-1 pt-sm-0 d-flex gap-2 flex-wrap align-items-center">
+                <input type="text" class="form-control" placeholder="소프트웨어명 입력" style="max-width:280px;">
+              </div>
+            </div>
+            <!-- 요청구분 -->
+            <div class="row g-0 border-bottom py-2 align-items-center">
+              <div class="col-12 col-sm-2 field-label-col py-1 pe-3">요청구분</div>
+              <div class="col-12 col-sm-10 ps-sm-3 pt-1 pt-sm-0 d-flex gap-3 flex-wrap">
+                <div class="form-check mb-0"><input class="form-check-input" type="radio" name="swtype" id="sw1"><label class="form-check-label" for="sw1">신규 설치</label></div>
+                <div class="form-check mb-0"><input class="form-check-input" type="radio" name="swtype" id="sw2"><label class="form-check-label" for="sw2">재설치</label></div>
+                <div class="form-check mb-0"><input class="form-check-input" type="radio" name="swtype" id="sw3"><label class="form-check-label" for="sw3">업그레이드</label></div>
+                <div class="form-check mb-0"><input class="form-check-input" type="radio" name="swtype" id="sw4"><label class="form-check-label" for="sw4">라이선스 추가</label></div>
+              </div>
+            </div>
+            <!-- 사용목적 -->
+            <div class="row g-0 border-bottom py-2 align-items-center">
+              <div class="col-12 col-sm-2 field-label-col py-1 pe-3">사용목적</div>
+              <div class="col-12 col-sm-10 ps-sm-3 pt-1 pt-sm-0">
+                <select class="form-select" style="width:auto; min-width:160px;">
+                  <option>::목적 선택::</option>
+                  <option>업무용</option>
+                  <option>개발용</option>
+                  <option>보안용</option>
+                  <option>기타</option>
+                </select>
+              </div>
+            </div>
+            <!-- 설치 대상 PC -->
+            <div class="row g-0 border-bottom py-2 align-items-center">
+              <div class="col-12 col-sm-2 field-label-col py-1 pe-3">설치 대상 PC</div>
+              <div class="col-12 col-sm-10 ps-sm-3 pt-1 pt-sm-0 d-flex gap-2 flex-wrap align-items-center">
+                <input type="text" class="form-control" placeholder="자산번호 또는 사용자명" style="max-width:240px;">
+                <button class="btn btn-outline-secondary btn-sm px-3">검색</button>
+              </div>
+            </div>
+            <!-- 희망 처리일 -->
+            <div class="row g-0 border-bottom py-2 align-items-center">
+              <div class="col-12 col-sm-2 field-label-col py-1 pe-3">희망 처리일</div>
+              <div class="col-12 col-sm-10 ps-sm-3 pt-1 pt-sm-0 d-flex gap-2 flex-wrap align-items-center">
+                <input type="date" class="form-control" value="2026-04-17" style="width:170px;">
+                <div class="d-flex align-items-center gap-1" style="color:#D85A30; font-size:13px;">
+                  <svg width="8" height="8" fill="#D85A30" viewBox="0 0 16 16"><circle cx="8" cy="8" r="8"/></svg>
+                  희망일은 요청일 기준 3일 이후부터 가능합니다.
+                </div>
+              </div>
+            </div>
+            <!-- 첨부파일 -->
+            <div class="row g-0 py-2 align-items-center">
+              <div class="col-12 col-sm-2 field-label-col py-1 pe-3">첨부파일</div>
+              <div class="col-12 col-sm-10 ps-sm-3 pt-1 pt-sm-0 d-flex gap-2 flex-wrap">
+                <button class="btn btn-sm px-3" style="background:#f3effe; color:#6f42c1; border:1px solid #6f42c1;">+ 파일 추가</button>
+                <button class="btn btn-sm btn-outline-danger px-3">삭제</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 요청 사유 -->
+        <div class="card border rounded-3 shadow-none">
+          <div class="card-body p-4">
+            <div class="d-flex align-items-center gap-2 mb-3">
+              <span class="section-num" style="background:#6f42c1;">2</span>
+              <span class="fw-500 text-secondary" style="font-size:15px;">요청 사유</span>
+            </div>
+            <textarea class="form-control" rows="4" placeholder="요청 사유를 구체적으로 작성하여 주시기 바랍니다."></textarea>
+          </div>
+        </div>
+
+      </div>
+      <div class="modal-footer border-top px-4 py-3 d-flex justify-content-center gap-3">
+        <button class="btn px-5 py-2 fw-500 text-white" style="background:#6f42c1; font-size:15px;">결재 요청</button>
+        <button class="btn btn-outline-secondary px-4 py-2" style="font-size:15px;">임시 보관</button>
+        <button class="btn btn-outline-secondary px-4 py-2" data-bs-dismiss="modal" style="font-size:15px;">닫 기</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+<script>
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('show');
+  document.getElementById('sidebarOverlay').classList.toggle('show');
+}
+</script>
+</body>
+</html>
