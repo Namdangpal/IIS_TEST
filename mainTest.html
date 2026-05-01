@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>IT 전산지원 서비스</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+
+<style>
+
+body {
+  background: #f5f7fb;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+/* 상단 */
+.top-bar {
+  padding: 15px 40px;
+  background: white;
+  border-bottom: 1px solid #eee;
+}
+
+.logo {
+  font-weight: bold;
+  font-size: 18px;
+}
+
+/* 타이틀 */
+.main-title {
+  text-align: center;
+  margin-top: 60px;
+  font-size: 42px;
+  font-weight: 700;
+}
+
+.sub-title {
+  text-align: center;
+  color: #888;
+  margin-bottom: 50px;
+}
+
+/* 카드 */
+.menu-card {
+  border-radius: 20px;
+  padding: 30px 25px;
+  height: 100%;
+  transition: 0.3s;
+  position: relative;
+}
+
+.menu-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+}
+
+/* 색상 */
+.card-green {
+  background: linear-gradient(135deg, #2ecc71, #27ae60);
+  color: white;
+}
+
+.card-pink {
+  background: #fdeeee;
+}
+
+.card-purple {
+  background: #f1ecff;
+}
+
+.card-blue {
+  background: #eaf2ff;
+}
+
+.card-orange {
+  background: #fff3e5;
+}
+
+/* 아이콘 */
+.card-icon {
+  font-size: 50px;
+  margin-bottom: 15px;
+  opacity: 0.9;
+}
+
+/* 타이틀 */
+.menu-title {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 20px;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 리스트 */
+.menu-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.card-green .menu-item {
+  color: rgba(255,255,255,0.9);
+}
+
+.arrow {
+  font-size: 16px;
+  transition: 0.2s;
+}
+
+/* 카드 간격 */
+.menu-row {
+  max-width: 1300px;
+  margin: auto;
+} 
+.menu-item:hover .arrow {
+  transform: translateX(6px);
+}
+.custom-row > div {
+  flex: 0 0 20%;
+  max-width: 20%;
+}
+
+@media (max-width: 992px) {
+  .custom-row > div {
+    flex: 0 0 33.33%;
+    max-width: 33.33%;
+  }
+}
+
+@media (max-width: 768px) {
+  .custom-row > div {
+    flex: 0 0 50%;
+    max-width: 50%;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<!-- 상단 -->
+<div class="top-bar d-flex justify-content-between">
+  <div class="logo">DB손해보험 | IT지원</div>
+  <div>
+    <i class="bi bi-person"></i> 로그아웃
+    &nbsp;&nbsp;
+    <i class="bi bi-gear"></i> 관리자화면
+  </div>
+</div>
+
+<!-- 타이틀 -->
+<div class="main-title">IT 전산지원 서비스</div>
+<div class="sub-title">필요한 모든 IT지원을 간편하게 요청하고 관리하세요.</div>
+
+<!-- 카드 -->
+<div class="container menu-row">
+<div class="row g-4 justify-content-center custom-row">
+
+    <!-- 카드1 -->
+    <div class="col-lg-2 col-md-4 col-sm-6">
+      <div class="menu-card card-green">
+        <div class="card-icon"><i class="bi bi-display"></i></div>
+        <div class="menu-title">직원전산지원 요청</div>
+        <div class="menu-item">전산장비지원 <i class="bi bi-chevron-right arrow"></i></div>
+        <div class="menu-item">전산소모품지원 <i class="bi bi-chevron-right arrow"></i></div>
+        <div class="menu-item">소프트웨어지원 <i class="bi bi-chevron-right arrow"></i></div>
+      </div>
+    </div>
+
+    <!-- 카드2 -->
+    <div class="col-lg-2 col-md-4 col-sm-6">
+      <div class="menu-card card-pink">
+        <div class="card-icon text-danger"><i class="bi bi-people"></i></div>
+        <div class="menu-title">PA · GA 전산요청</div>
+        <div class="menu-item">(선구매)신인노트북 <i class="bi bi-chevron-right arrow"></i></div>
+        <div class="menu-item">PA노트북구매 <i class="bi bi-chevron-right arrow"></i></div>
+        <div class="menu-item">PA프로그램설치 <i class="bi bi-chevron-right arrow"></i></div>
+        <div class="menu-item">노트북교체/변경 <i class="bi bi-chevron-right arrow"></i></div>
+      </div>
+    </div>
+
+    <!-- 카드3 -->
+    <div class="col-lg-2 col-md-4 col-sm-6">
+      <div class="menu-card card-purple">
+        <div class="card-icon text-primary"><i class="bi bi-file-earmark-text"></i></div>
+        <div class="menu-title">작업요청</div>
+        <div class="menu-item">작업요청 <i class="bi bi-chevron-right arrow"></i></div>
+      </div>
+    </div>
+
+    <!-- 카드4 -->
+    <div class="col-lg-2 col-md-4 col-sm-6">
+      <div class="menu-card card-blue">
+        <div class="card-icon text-primary"><i class="bi bi-laptop"></i></div>
+        <div class="menu-title">전산지원 진행현황</div>
+        <div class="menu-item">결재요청 <i class="bi bi-chevron-right arrow"></i></div>
+        <div class="menu-item">전체현황 <i class="bi bi-chevron-right arrow"></i></div>
+        <div class="menu-item">진행 <i class="bi bi-chevron-right arrow"></i></div>
+        <div class="menu-item">검수 <i class="bi bi-chevron-right arrow"></i></div>
+      </div>
+    </div>
+
+    <!-- 카드5 -->
+    <div class="col-lg-2 col-md-4 col-sm-6">
+      <div class="menu-card card-orange">
+        <div class="card-icon text-warning"><i class="bi bi-credit-card"></i></div>
+        <div class="menu-title">결재</div>
+        <div class="menu-item">요청결재 <i class="bi bi-chevron-right arrow"></i></div>
+        <div class="menu-item">특이결재 <i class="bi bi-chevron-right arrow"></i></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>
